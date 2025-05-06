@@ -35,7 +35,7 @@ pipeline {
                  Your build is successfull.
                  Congratulations
                  """,
-                 to: 'monishkasii97@gmail.com'
+                 to: 'monishdreamline97@gmail.com'
         }
     }
 }
