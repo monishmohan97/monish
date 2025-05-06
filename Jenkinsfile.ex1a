@@ -37,11 +37,5 @@ pipeline {
                  """,
                  to: 'monishkasii97@gmail.com'
         }
-        failure {
-            echo "Build failed"
-        }
-        always {
-            cleanWs()
-        }
     }
 }
