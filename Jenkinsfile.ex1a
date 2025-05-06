@@ -35,7 +35,7 @@ pipeline {
                  Your build is successfull.
                  Congratulations
                  """,
-                 to: 'vinod@vinod.co'
+                 to: 'monishkasii97@gmail.com'
         }
         failure {
             echo "Build failed"
