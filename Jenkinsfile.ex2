@@ -1,0 +1,86 @@
+pipeline {
+    agent any
+    parameters {
+        choice(name: 'ENV', choices: ['development', 'staging'], description: 'Select deployment environment')
+    }
+    environment {
+        ENV_DIR = '.venv'
+        REQUIREMENTS_FILE = 'requirements.txt'
+        FLAKE8 = 'flake8'
+    }
+
+    stages {
+        stage('Setup') {
+            steps {
+                echo 'Setting up Python virtual environment'
+                bat """
+                python -m venv ${ENV_DIR}
+                call ${ENV_DIR}\\Scripts\\activate && pip install -r ${REQUIREMENTS_FILE}
+                """
+            }
+        }
+
+        stage('Code Quality') {
+            steps {
+                echo 'Running code quality checks with flake8'
+                bat """
+                call ${ENV_DIR}\\Scripts\\activate && ${FLAKE8} . --max-line-length=79
+                """
+            }
+        }
+
+        stage('Parallel Tests') {
+            parallel {
+                stage('Unit Tests') {
+                    steps {
+                        echo 'Running unit tests'
+                        bat """
+                        call ${ENV_DIR}\\Scripts\\activate && python -m pytest tests/unit
+                        """
+                    }
+                }
+                stage('Integration Tests') {
+                    steps {
+                        echo 'Running integration tests'
+                        bat """
+                        call ${ENV_DIR}\\Scripts\\activate && python -m pytest tests/integration
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Deploy') {
+            when {
+                branch 'main'
+            }
+            steps {
+                echo "Deploying to ${params.ENV} environment"
+                // Placeholder for deployment commands, e.g., copying files, SSH, etc.
+                bat """
+                call ${ENV_DIR}\\Scripts\\activate && python deploy.py --env=${params.ENV}
+                """
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Build succeeded'
+            emailext subject: 'Build Successful',
+                     body: '''
+                     Your build is successful.
+                     Congratulations!
+                     ''',
+                     to: 'monishkasii97@gmail.com'
+        }
+        failure {
+            echo 'Build failed'
+            emailext subject: 'Build Failed',
+                     body: '''
+                     The build has failed. Check Jenkins logs for details.
+                     ''',
+                     to: 'monishkasii97@gmail.com'
+        }
+    }
+}
